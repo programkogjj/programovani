@@ -656,7 +656,7 @@
     const PYODIDE_VERSION = "0.26.4";
     const PYODIDE_BASE = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
     const RUN_TIMEOUT_MS = 8000;           // limit běhu jednoho spuštění
-    const STORAGE_KEY = "python-test-v1";  // automatické ukládání rozpracovaného testu
+    const STORAGE_KEY = "python-test-v1";  // ukládání rozpracovaného testu (sessionStorage = jen do zavření karty)
 
     /* =================================================================
        ÚLOHY
@@ -721,13 +721,13 @@
     }
 
     function save() {
-      try {localStorage.setItem(STORAGE_KEY, JSON.stringify(state));} catch (_) { }
+      try {sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));} catch (_) { }
     }
     function load() {
-      try {return JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");} catch (_) {return null;}
+      try {return JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "null");} catch (_) {return null;}
     }
     function clearSaved() {
-      try {localStorage.removeItem(STORAGE_KEY);} catch (_) { }
+      try {sessionStorage.removeItem(STORAGE_KEY);} catch (_) { }
     }
 
     function logViolation(type) {
@@ -1134,7 +1134,7 @@
 
       let ok = false, note = "";
       try {
-        if (APPS_SCRIPT_URL.startsWith("https://script.google.com/macros/s/AKfycbwfhFrRhVxRvxiKOtAWxBSLmJZu9Islj-Oo-EzGihow3Mk32kU2EJOKGZ9Id2MnN64V/exec")) throw new Error("Není nastaven APPS_SCRIPT_URL.");
+        if (APPS_SCRIPT_URL.startsWith("VLOZ")) throw new Error("Není nastaven APPS_SCRIPT_URL.");
         // text/plain = „jednoduchý“ požadavek bez CORS preflightu, který Apps Script nepodporuje
         const res = await fetch(APPS_SCRIPT_URL, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body});
         const data = await res.json().catch(() => ({}));
@@ -1142,7 +1142,7 @@
         else throw new Error(data.message || "Server odpověděl neočekávaně.");
       } catch (err) {
         // Záložní pokus bez čtení odpovědi (např. při omezení CORS)
-        if (!APPS_SCRIPT_URL.startsWith("https://script.google.com/macros/s/AKfycbwfhFrRhVxRvxiKOtAWxBSLmJZu9Islj-Oo-EzGihow3Mk32kU2EJOKGZ9Id2MnN64V/exec") && err instanceof TypeError) {
+        if (!APPS_SCRIPT_URL.startsWith("VLOZ") && err instanceof TypeError) {
           try {
             await fetch(APPS_SCRIPT_URL, {method: "POST", mode: "no-cors", headers: {"Content-Type": "text/plain;charset=utf-8"}, body});
             ok = true;
