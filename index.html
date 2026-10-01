@@ -1,316 +1,599 @@
 <!DOCTYPE html>
 <html lang="cs">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Test – Základy Pythonu</title>
-<style>
-  /* ====== KONFIGURACE VZHLEDU ====== */
-  :root {
-    --bg: #f6f7f9;
-    --card: #ffffff;
-    --text: #1d2330;
-    --muted: #6b7280;
-    --line: #e3e6eb;
-    --accent: #2f6fed;
-    --accent-dark: #1f56c4;
-    --ok: #15803d;
-    --err: #b91c1c;
-    --warn: #b45309;
-    --code-bg: #0f172a;
-    --code-text: #e2e8f0;
-    --radius: 10px;
-    --mono: "JetBrains Mono", "Fira Code", Consolas, "Courier New", monospace;
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
-  body {
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.55;
-    -webkit-user-select: none;
-    user-select: none;          /* zadání nelze označit a zkopírovat */
-  }
-  .hidden { display: none !important; }
-
-  /* ====== LAYOUT ====== */
-  .wrap { max-width: 880px; margin: 0 auto; padding: 24px 16px 80px; }
-  .card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 24px;
-    margin-bottom: 20px;
-  }
-  h1 { font-size: 1.6rem; margin: 0 0 6px; }
-  h2 { font-size: 1.15rem; margin: 0 0 10px; }
-  p.lead { color: var(--muted); margin: 0 0 20px; }
-  code.inline {
-    font-family: var(--mono);
-    background: #eef1f6;
-    padding: 1px 6px;
-    border-radius: 4px;
-    font-size: .9em;
-  }
-
-  /* ====== FORMULÁŘ ====== */
-  .start { max-width: 460px; margin: 8vh auto 0; }
-  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-  .field label { font-weight: 600; font-size: .92rem; }
-  .field input, .field select {
-    font: inherit;
-    padding: 10px 12px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: #fff;
-    -webkit-user-select: text; user-select: text;
-  }
-  .field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: transparent; }
-  .form-error { color: var(--err); font-size: .9rem; min-height: 1.2em; margin-bottom: 10px; }
-
-  /* ====== TLAČÍTKA ====== */
-  .btn {
-    font: inherit;
-    font-weight: 600;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 18px;
-    cursor: pointer;
-    background: var(--accent);
-    color: #fff;
-    transition: background .15s;
-  }
-  .btn:hover:not(:disabled) { background: var(--accent-dark); }
-  .btn:disabled { opacity: .55; cursor: not-allowed; }
-  .btn.secondary { background: #eef1f6; color: var(--text); }
-  .btn.secondary:hover:not(:disabled) { background: #e2e6ee; }
-  .btn.big { width: 100%; padding: 13px; font-size: 1.05rem; }
-
-  /* ====== HLAVIČKA TESTU ====== */
-  .topbar {
-    position: sticky; top: 0; z-index: 10;
-    background: rgba(255,255,255,.94);
-    backdrop-filter: blur(6px);
-    border-bottom: 1px solid var(--line);
-  }
-  .topbar .inner {
-    max-width: 880px; margin: 0 auto; padding: 10px 16px;
-    display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; justify-content: space-between;
-    font-size: .92rem;
-  }
-  .student { font-weight: 600; }
-  .meta { display: flex; gap: 16px; color: var(--muted); align-items: center; flex-wrap: wrap; }
-  .pill { display: inline-flex; align-items: center; gap: 6px; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warn); }
-  .dot.ready { background: var(--ok); }
-  .dot.error { background: var(--err); }
-
-  /* ====== ÚLOHY ====== */
-  .task-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
-  .task-num { color: var(--accent); font-size: .8rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
-  .task-status { font-size: .8rem; color: var(--muted); white-space: nowrap; }
-  .task-status.ran { color: var(--ok); }
-  .task-text { margin: 4px 0 16px; }
-  .task-text p { margin: 0 0 8px; }
-
-  .editor-wrap {
-    display: flex;
-    border-radius: 8px;
-    overflow: hidden;
-    background: var(--code-bg);
-    border: 1px solid #1e293b;
-  }
-  .gutter {
-    font-family: var(--mono); font-size: 14px; line-height: 1.5;
-    padding: 12px 8px 12px 12px;
-    color: #64748b; text-align: right;
-    background: #0b1222;
-    min-width: 40px;
-    white-space: pre;
-    overflow: hidden;
-  }
-  textarea.code {
-    flex: 1;
-    font-family: var(--mono); font-size: 14px; line-height: 1.5;
-    padding: 12px;
-    min-height: 190px;
-    border: none; outline: none; resize: vertical;
-    background: transparent; color: var(--code-text);
-    tab-size: 4;
-    white-space: pre;
-    overflow-x: auto;
-    -webkit-user-select: text; user-select: text;
-    caret-color: #fbbf24;
-  }
-  .stdin-row { margin-top: 10px; }
-  .stdin-row label { font-size: .85rem; color: var(--muted); display: block; margin-bottom: 4px; }
-  textarea.stdin {
-    width: 100%;
-    font-family: var(--mono); font-size: 13px;
-    padding: 8px 10px;
-    border: 1px solid var(--line); border-radius: 8px;
-    min-height: 40px; resize: vertical;
-    -webkit-user-select: text; user-select: text;
-  }
-  .actions { display: flex; gap: 10px; margin: 12px 0 10px; flex-wrap: wrap; }
-  .console {
-    font-family: var(--mono); font-size: 13px;
-    background: #f1f5f9;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 10px 12px;
-    min-height: 48px; max-height: 260px; overflow: auto;
-    white-space: pre-wrap; word-break: break-word;
-  }
-  .console .label { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; display: block; margin-bottom: 4px; }
-  .console .err { color: var(--err); }
-  .console .info { color: var(--muted); font-style: italic; }
-
-  /* ====== ODESLÁNÍ ====== */
-  .submit-card { text-align: center; }
-  .submit-msg { margin-top: 12px; font-size: .95rem; min-height: 1.2em; }
-  .submit-msg.ok { color: var(--ok); }
-  .submit-msg.err { color: var(--err); }
-
-  /* ====== MODÁLNÍ OKNA / ZÁKRYT ====== */
-  .overlay {
-    position: fixed; inset: 0; z-index: 100;
-    background: rgba(15, 23, 42, .96);
-    color: #fff;
-    display: flex; align-items: center; justify-content: center;
-    text-align: center; padding: 24px;
-  }
-  .overlay .box { max-width: 420px; }
-  .overlay h2 { font-size: 1.3rem; }
-  .modal-bg {
-    position: fixed; inset: 0; z-index: 90;
-    background: rgba(15, 23, 42, .45);
-    display: flex; align-items: center; justify-content: center; padding: 16px;
-  }
-  .modal { background: #fff; border-radius: var(--radius); padding: 24px; max-width: 440px; width: 100%; }
-  .modal .row { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
-  .toast {
-    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-    background: var(--text); color: #fff;
-    padding: 10px 16px; border-radius: 8px; font-size: .9rem;
-    z-index: 200; opacity: 0; transition: opacity .2s; pointer-events: none;
-  }
-  .toast.show { opacity: 1; }
-
-  .done { text-align: center; max-width: 520px; margin: 10vh auto 0; }
-  .done .check { font-size: 3rem; color: var(--ok); }
-
-  @media (max-width: 600px) {
-    .card { padding: 18px; }
-    .gutter { display: none; }
-  }
-
-  /* ====== OCHRANA PŘI TISKU ====== */
-  @media print {
-    html, body { background: #fff !important; }
-    body * { display: none !important; visibility: hidden !important; }
-    body::after {
-      content: "Tisk a ukládání obsahu testu není povoleno.";
-      display: block; visibility: visible;
-      font: 20px system-ui, sans-serif; text-align: center; padding-top: 40vh;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test – Základy Pythonu</title>
+  <style>
+    /* ====== KONFIGURACE VZHLEDU ====== */
+    :root {
+      --bg: #f6f7f9;
+      --card: #ffffff;
+      --text: #1d2330;
+      --muted: #6b7280;
+      --line: #e3e6eb;
+      --accent: #2f6fed;
+      --accent-dark: #1f56c4;
+      --ok: #15803d;
+      --err: #b91c1c;
+      --warn: #b45309;
+      --code-bg: #0f172a;
+      --code-text: #e2e8f0;
+      --radius: 10px;
+      --mono: "JetBrains Mono", "Fira Code", Consolas, "Courier New", monospace;
     }
-  }
-</style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      -webkit-user-select: none;
+      user-select: none;
+      /* zadání nelze označit a zkopírovat */
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* ====== LAYOUT ====== */
+    .wrap {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 24px 16px 80px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin: 0 0 6px;
+    }
+
+    h2 {
+      font-size: 1.15rem;
+      margin: 0 0 10px;
+    }
+
+    p.lead {
+      color: var(--muted);
+      margin: 0 0 20px;
+    }
+
+    code.inline {
+      font-family: var(--mono);
+      background: #eef1f6;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: .9em;
+    }
+
+    /* ====== FORMULÁŘ ====== */
+    .start {
+      max-width: 460px;
+      margin: 8vh auto 0;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .field label {
+      font-weight: 600;
+      font-size: .92rem;
+    }
+
+    .field input,
+    .field select {
+      font: inherit;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 0;
+      border-color: transparent;
+    }
+
+    .form-error {
+      color: var(--err);
+      font-size: .9rem;
+      min-height: 1.2em;
+      margin-bottom: 10px;
+    }
+
+    /* ====== TLAČÍTKA ====== */
+    .btn {
+      font: inherit;
+      font-weight: 600;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      transition: background .15s;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: var(--accent-dark);
+    }
+
+    .btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .btn.secondary {
+      background: #eef1f6;
+      color: var(--text);
+    }
+
+    .btn.secondary:hover:not(:disabled) {
+      background: #e2e6ee;
+    }
+
+    .btn.big {
+      width: 100%;
+      padding: 13px;
+      font-size: 1.05rem;
+    }
+
+    /* ====== HLAVIČKA TESTU ====== */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(255, 255, 255, .94);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .topbar .inner {
+      max-width: 880px;
+      margin: 0 auto;
+      padding: 10px 16px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      align-items: center;
+      justify-content: space-between;
+      font-size: .92rem;
+    }
+
+    .student {
+      font-weight: 600;
+    }
+
+    .meta {
+      display: flex;
+      gap: 16px;
+      color: var(--muted);
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--warn);
+    }
+
+    .dot.ready {
+      background: var(--ok);
+    }
+
+    .dot.error {
+      background: var(--err);
+    }
+
+    /* ====== ÚLOHY ====== */
+    .task-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .task-num {
+      color: var(--accent);
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .task-status {
+      font-size: .8rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .task-status.ran {
+      color: var(--ok);
+    }
+
+    .task-text {
+      margin: 4px 0 16px;
+    }
+
+    .task-text p {
+      margin: 0 0 8px;
+    }
+
+    .editor-wrap {
+      display: flex;
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--code-bg);
+      border: 1px solid #1e293b;
+    }
+
+    .gutter {
+      font-family: var(--mono);
+      font-size: 14px;
+      line-height: 1.5;
+      padding: 12px 8px 12px 12px;
+      color: #64748b;
+      text-align: right;
+      background: #0b1222;
+      min-width: 40px;
+      white-space: pre;
+      overflow: hidden;
+    }
+
+    textarea.code {
+      flex: 1;
+      font-family: var(--mono);
+      font-size: 14px;
+      line-height: 1.5;
+      padding: 12px;
+      min-height: 190px;
+      border: none;
+      outline: none;
+      resize: vertical;
+      background: transparent;
+      color: var(--code-text);
+      tab-size: 4;
+      white-space: pre;
+      overflow-x: auto;
+      -webkit-user-select: text;
+      user-select: text;
+      caret-color: #fbbf24;
+    }
+
+    .stdin-row {
+      margin-top: 10px;
+    }
+
+    .stdin-row label {
+      font-size: .85rem;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    textarea.stdin {
+      width: 100%;
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      min-height: 40px;
+      resize: vertical;
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin: 12px 0 10px;
+      flex-wrap: wrap;
+    }
+
+    .console {
+      font-family: var(--mono);
+      font-size: 13px;
+      background: #f1f5f9;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      min-height: 48px;
+      max-height: 260px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .console .label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .console .err {
+      color: var(--err);
+    }
+
+    .console .info {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* ====== ODESLÁNÍ ====== */
+    .submit-card {
+      text-align: center;
+    }
+
+    .submit-msg {
+      margin-top: 12px;
+      font-size: .95rem;
+      min-height: 1.2em;
+    }
+
+    .submit-msg.ok {
+      color: var(--ok);
+    }
+
+    .submit-msg.err {
+      color: var(--err);
+    }
+
+    /* ====== MODÁLNÍ OKNA / ZÁKRYT ====== */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(15, 23, 42, .96);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+    }
+
+    .overlay .box {
+      max-width: 420px;
+    }
+
+    .overlay h2 {
+      font-size: 1.3rem;
+    }
+
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      background: rgba(15, 23, 42, .45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 24px;
+      max-width: 440px;
+      width: 100%;
+    }
+
+    .modal .row {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 18px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text);
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: .9rem;
+      z-index: 200;
+      opacity: 0;
+      transition: opacity .2s;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    .done {
+      text-align: center;
+      max-width: 520px;
+      margin: 10vh auto 0;
+    }
+
+    .done .check {
+      font-size: 3rem;
+      color: var(--ok);
+    }
+
+    @media (max-width: 600px) {
+      .card {
+        padding: 18px;
+      }
+
+      .gutter {
+        display: none;
+      }
+    }
+
+    /* ====== OCHRANA PŘI TISKU ====== */
+    @media print {
+
+      html,
+      body {
+        background: #fff !important;
+      }
+
+      body * {
+        display: none !important;
+        visibility: hidden !important;
+      }
+
+      body::after {
+        content: "Tisk a ukládání obsahu testu není povoleno.";
+        display: block;
+        visibility: visible;
+        font: 20px system-ui, sans-serif;
+        text-align: center;
+        padding-top: 40vh;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- ====================== 1. ÚVODNÍ FORMULÁŘ ====================== -->
-<section id="screen-start" class="wrap">
-  <div class="card start">
-    <h1>Test: Základy Pythonu</h1>
-    <p class="lead">Vyplň své údaje a zahaj test. Kód píšeš sám – kopírování a vkládání je vypnuté.</p>
-    <form id="start-form" novalidate>
-      <div class="field">
-        <label for="jmeno">Jméno</label>
-        <input id="jmeno" name="jmeno" autocomplete="given-name" required maxlength="40">
-      </div>
-      <div class="field">
-        <label for="prijmeni">Příjmení</label>
-        <input id="prijmeni" name="prijmeni" autocomplete="family-name" required maxlength="40">
-      </div>
-      <div class="field">
-        <label for="trida">Třída</label>
-        <select id="trida" name="trida" required>
-          <option value="">– vyber třídu –</option>
-          <option>1.A</option><option>1.B</option><option>1.C</option>
-          <option>2.A</option><option>2.B</option><option>2.C</option>
-          <option>3.A</option><option>3.B</option><option>3.C</option>
-          <option>4.A</option><option>4.B</option><option>4.C</option>
-        </select>
-      </div>
-      <div class="form-error" id="form-error"></div>
-      <button class="btn big" type="submit">Zahájit test</button>
-    </form>
-  </div>
-</section>
+  <!-- ====================== 1. ÚVODNÍ FORMULÁŘ ====================== -->
+  <section id="screen-start" class="wrap">
+    <div class="card start">
+      <h1>Test: Základy Pythonu</h1>
+      <p class="lead">Vyplň své údaje a zahaj test. Kód píšeš sám – kopírování a vkládání je vypnuté.</p>
+      <form id="start-form" novalidate>
+        <div class="field">
+          <label for="jmeno">Jméno</label>
+          <input id="jmeno" name="jmeno" autocomplete="given-name" required maxlength="40">
+        </div>
+        <div class="field">
+          <label for="prijmeni">Příjmení</label>
+          <input id="prijmeni" name="prijmeni" autocomplete="family-name" required maxlength="40">
+        </div>
+        <div class="field">
+          <label for="trida">Třída</label>
+          <select id="trida" name="trida" required>
+            <option value="">– vyber třídu –</option>
+            <option>1.A</option>
+            <option>1.B</option>
+            <option>1.C</option>
+            <option>2.A</option>
+            <option>2.B</option>
+            <option>2.C</option>
+            <option>3.A</option>
+            <option>3.B</option>
+            <option>3.C</option>
+            <option>4.A</option>
+            <option>4.B</option>
+            <option>4.C</option>
+          </select>
+        </div>
+        <div class="form-error" id="form-error"></div>
+        <button class="btn big" type="submit">Zahájit test</button>
+      </form>
+    </div>
+  </section>
 
-<!-- ====================== 2. TEST ====================== -->
-<section id="screen-test" class="hidden">
-  <div class="topbar">
-    <div class="inner">
-      <span class="student" id="student-label"></span>
-      <div class="meta">
-        <span class="pill"><span class="dot" id="py-dot"></span><span id="py-status">Načítám Python…</span></span>
-        <span class="pill">⏱ <span id="timer">00:00</span></span>
+  <!-- ====================== 2. TEST ====================== -->
+  <section id="screen-test" class="hidden">
+    <div class="topbar">
+      <div class="inner">
+        <span class="student" id="student-label"></span>
+        <div class="meta">
+          <span class="pill"><span class="dot" id="py-dot"></span><span id="py-status">Načítám Python…</span></span>
+          <span class="pill">⏱ <span id="timer">00:00</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="wrap">
+      <div id="tasks"></div>
+
+      <div class="card submit-card">
+        <h2>Hotovo?</h2>
+        <p class="lead" style="margin-bottom:16px">Před odesláním si zkontroluj všechny úlohy. Po odeslání už nelze nic
+          měnit.</p>
+        <button class="btn big" id="btn-submit">Odeslat test</button>
+        <div class="submit-msg" id="submit-msg"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====================== 3. HOTOVO ====================== -->
+  <section id="screen-done" class="wrap hidden">
+    <div class="card done">
+      <div class="check">✓</div>
+      <h1>Test byl odeslán</h1>
+      <p class="lead" id="done-text">Tvé odpovědi byly uloženy. Můžeš zavřít okno.</p>
+      <button class="btn secondary" id="btn-backup">Stáhnout kopii odpovědí</button>
+    </div>
+  </section>
+
+  <!-- Zákryt při opuštění okna / pokusu o snímek -->
+  <div id="shield" class="overlay hidden">
+    <div class="box">
+      <h2 id="shield-title">Test je skrytý</h2>
+      <p id="shield-text">Opustil(a) jsi okno testu. Událost byla zaznamenána.</p>
+      <button class="btn" id="shield-btn">Pokračovat v testu</button>
+    </div>
+  </div>
+
+  <!-- Potvrzovací dialog -->
+  <div id="confirm" class="modal-bg hidden">
+    <div class="modal">
+      <h2>Odeslat test?</h2>
+      <p id="confirm-text"></p>
+      <div class="row">
+        <button class="btn secondary" id="confirm-no">Zpět</button>
+        <button class="btn" id="confirm-yes">Odeslat</button>
       </div>
     </div>
   </div>
-  <div class="wrap">
-    <div id="tasks"></div>
 
-    <div class="card submit-card">
-      <h2>Hotovo?</h2>
-      <p class="lead" style="margin-bottom:16px">Před odesláním si zkontroluj všechny úlohy. Po odeslání už nelze nic měnit.</p>
-      <button class="btn big" id="btn-submit">Odeslat test</button>
-      <div class="submit-msg" id="submit-msg"></div>
-    </div>
-  </div>
-</section>
+  <div class="toast" id="toast"></div>
 
-<!-- ====================== 3. HOTOVO ====================== -->
-<section id="screen-done" class="wrap hidden">
-  <div class="card done">
-    <div class="check">✓</div>
-    <h1>Test byl odeslán</h1>
-    <p class="lead" id="done-text">Tvé odpovědi byly uloženy. Můžeš zavřít okno.</p>
-    <button class="btn secondary" id="btn-backup">Stáhnout kopii odpovědí</button>
-  </div>
-</section>
-
-<!-- Zákryt při opuštění okna / pokusu o snímek -->
-<div id="shield" class="overlay hidden">
-  <div class="box">
-    <h2 id="shield-title">Test je skrytý</h2>
-    <p id="shield-text">Opustil(a) jsi okno testu. Událost byla zaznamenána.</p>
-    <button class="btn" id="shield-btn">Pokračovat v testu</button>
-  </div>
-</div>
-
-<!-- Potvrzovací dialog -->
-<div id="confirm" class="modal-bg hidden">
-  <div class="modal">
-    <h2>Odeslat test?</h2>
-    <p id="confirm-text"></p>
-    <div class="row">
-      <button class="btn secondary" id="confirm-no">Zpět</button>
-      <button class="btn" id="confirm-yes">Odeslat</button>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<!-- ============================================================
+  <!-- ============================================================
      Python běží ve Web Workeru: UI nezamrzá a nekonečnou smyčku
      lze ukončit (worker se zruší a načte znovu).
      ============================================================ -->
-<script id="worker-src" type="text/js-worker">
+  <script id="worker-src" type="text/js-worker">
   let pyodide = null;
 
   async function init(url, indexURL) {
@@ -362,204 +645,204 @@
   };
 </script>
 
-<script>
-/* =================================================================
-   KONFIGURACE
-   ================================================================= */
-// Sem vlož URL nasazeného Google Apps Script Web App (končí na /exec)
-const APPS_SCRIPT_URL = "VLOZ_SEM_URL_WEB_APP/exec";
+  <script>
+    /* =================================================================
+       KONFIGURACE
+       ================================================================= */
+    // Sem vlož URL nasazeného Google Apps Script Web App (končí na /exec)
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwfhFrRhVxRvxiKOtAWxBSLmJZu9Islj-Oo-EzGihow3Mk32kU2EJOKGZ9Id2MnN64V/exec";
 
-// Novější Pyodide než 0.23.4 – rychlejší start, Python 3.12
-const PYODIDE_VERSION = "0.26.4";
-const PYODIDE_BASE = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
-const RUN_TIMEOUT_MS = 8000;           // limit běhu jednoho spuštění
-const STORAGE_KEY = "python-test-v1";  // automatické ukládání rozpracovaného testu
+    // Novější Pyodide než 0.23.4 – rychlejší start, Python 3.12
+    const PYODIDE_VERSION = "0.26.4";
+    const PYODIDE_BASE = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
+    const RUN_TIMEOUT_MS = 8000;           // limit běhu jednoho spuštění
+    const STORAGE_KEY = "python-test-v1";  // automatické ukládání rozpracovaného testu
 
-/* =================================================================
-   ÚLOHY
-   ================================================================= */
-const TASKS = [
-  {
-    title: "Vstup, změna datového typu a aritmetika",
-    html: `<p>Načti od uživatele pomocí <code class="inline">input()</code> věk. Převeď jej na číslo (<code class="inline">int</code>), přičti k němu číslo <code class="inline">5</code> a vytiskni výsledek pomocí formátovaného printu (<code class="inline">f-string</code>) ve tvaru:</p>
+    /* =================================================================
+       ÚLOHY
+       ================================================================= */
+    const TASKS = [
+      {
+        title: "Vstup, změna datového typu a aritmetika",
+        html: `<p>Načti od uživatele pomocí <code class="inline">input()</code> věk. Převeď jej na číslo (<code class="inline">int</code>), přičti k němu číslo <code class="inline">5</code> a vytiskni výsledek pomocí formátovaného printu (<code class="inline">f-string</code>) ve tvaru:</p>
            <p><code class="inline">Za 5 let ti bude X let.</code></p>`,
-    stdin: "16",
-    starter: "# Úloha 1\n",
-  },
-  {
-    title: "Generování náhodných čísel, max a min",
-    html: `<p>Importuj modul <code class="inline">random</code>. Vygeneruj 3 náhodná celá čísla od 1 do 100. Pomocí vestavěných funkcí <code class="inline">max()</code> a <code class="inline">min()</code> najdi největší a nejmenší z nich a vytiskni je pomocí f-stringu.</p>`,
-    starter: "# Úloha 2\n",
-  },
-  {
-    title: "Statistické funkce (průměr, medián, modus)",
-    html: `<p>Importuj modul <code class="inline">statistics</code>. Je dán seznam hodnot:</p>
+        stdin: "16",
+        starter: "# Úloha 1\n",
+      },
+      {
+        title: "Generování náhodných čísel, max a min",
+        html: `<p>Importuj modul <code class="inline">random</code>. Vygeneruj 3 náhodná celá čísla od 1 do 100. Pomocí vestavěných funkcí <code class="inline">max()</code> a <code class="inline">min()</code> najdi největší a nejmenší z nich a vytiskni je pomocí f-stringu.</p>`,
+        starter: "# Úloha 2\n",
+      },
+      {
+        title: "Statistické funkce (průměr, medián, modus)",
+        html: `<p>Importuj modul <code class="inline">statistics</code>. Je dán seznam hodnot:</p>
            <p><code class="inline">data = [12, 15, 12, 18, 20, 12, 25]</code></p>
            <p>Vypočítej a vytiskni jejich průměr (<code class="inline">mean</code>), medián (<code class="inline">median</code>) a modus (<code class="inline">mode</code>).</p>`,
-    starter: "# Úloha 3\ndata = [12, 15, 12, 18, 20, 12, 25]\n",
-  },
-  {
-    title: "Hromadný převod typů pomocí map()",
-    html: `<p>Je dán seznam řetězců:</p>
+        starter: "# Úloha 3\ndata = [12, 15, 12, 18, 20, 12, 25]\n",
+      },
+      {
+        title: "Hromadný převod typů pomocí map()",
+        html: `<p>Je dán seznam řetězců:</p>
            <p><code class="inline">cisla_str = ["10", "20", "30", "40"]</code></p>
            <p>Pomocí funkce <code class="inline">map()</code> a <code class="inline">list()</code> přetypuj všechny prvky na celá čísla (<code class="inline">int</code>). Vytiskni výsledný seznam a jeho součet (<code class="inline">sum()</code>).</p>`,
-    starter: '# Úloha 4\ncisla_str = ["10", "20", "30", "40"]\n',
-  },
-  {
-    title: "Rozbalování proměnných (unpacking)",
-    html: `<p>Je dána trojice (tuple):</p>
+        starter: '# Úloha 4\ncisla_str = ["10", "20", "30", "40"]\n',
+      },
+      {
+        title: "Rozbalování proměnných (unpacking)",
+        html: `<p>Je dána trojice (tuple):</p>
            <p><code class="inline">kandidat = ("Jan", "Novák", 95)</code></p>
            <p>Pomocí <i>variable unpacking</i> rozbal tyto 3 hodnoty do samostatných proměnných <code class="inline">jmeno</code>, <code class="inline">prijmeni</code>, <code class="inline">skore</code>. Vytiskni výstup ve tvaru:</p>
            <p><code class="inline">Student Jan Novák získal 95 bodů.</code></p>`,
-    starter: '# Úloha 5\nkandidat = ("Jan", "Novák", 95)\n',
-  },
-];
+        starter: '# Úloha 5\nkandidat = ("Jan", "Novák", 95)\n',
+      },
+    ];
 
-/* =================================================================
-   STAV
-   ================================================================= */
-const state = {
-  student: null,        // {jmeno, prijmeni, trida}
-  startedAt: null,
-  answers: TASKS.map(t => ({ code: t.starter, stdin: t.stdin || "", output: "", runs: 0 })),
-  violations: [],       // záznamy o opuštění okna, pokusech o kopírování apod.
-  submitted: false,
-};
+    /* =================================================================
+       STAV
+       ================================================================= */
+    const state = {
+      student: null,        // {jmeno, prijmeni, trida}
+      startedAt: null,
+      answers: TASKS.map(t => ({code: t.starter, stdin: t.stdin || "", output: "", runs: 0})),
+      violations: [],       // záznamy o opuštění okna, pokusech o kopírování apod.
+      submitted: false,
+    };
 
-const $ = (s, r = document) => r.querySelector(s);
-const esc = (s) => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const $ = (s, r = document) => r.querySelector(s);
+    const esc = (s) => String(s).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
 
-function toast(msg) {
-  const t = $("#toast");
-  t.textContent = msg;
-  t.classList.add("show");
-  clearTimeout(toast._t);
-  toast._t = setTimeout(() => t.classList.remove("show"), 2200);
-}
-
-function save() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (_) {}
-}
-function load() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "null"); } catch (_) { return null; }
-}
-function clearSaved() {
-  try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
-}
-
-function logViolation(type) {
-  if (!state.student || state.submitted) return;
-  state.violations.push({ type, time: new Date().toISOString() });
-  save();
-}
-
-/* =================================================================
-   PYODIDE WORKER
-   ================================================================= */
-let worker = null, pyReady = false, runSeq = 0;
-const pending = new Map();
-
-function setPyStatus(text, cls) {
-  $("#py-status").textContent = text;
-  $("#py-dot").className = "dot" + (cls ? " " + cls : "");
-}
-
-function startWorker() {
-  pyReady = false;
-  setPyStatus("Načítám Python…");
-  const src = $("#worker-src").textContent;
-  const url = URL.createObjectURL(new Blob([src], { type: "text/javascript" }));
-  worker = new Worker(url);
-  worker.onmessage = (e) => {
-    const m = e.data;
-    if (m.type === "ready") {
-      pyReady = true;
-      setPyStatus(`Python ${m.version ? "připraven" : "připraven"}`, "ready");
-      document.querySelectorAll(".btn-run").forEach(b => (b.disabled = false));
-    } else if (m.type === "init-error") {
-      setPyStatus("Python se nepodařilo načíst", "error");
-      toast("Chyba načtení Pythonu – zkontroluj připojení a obnov stránku.");
-    } else if (m.type === "result") {
-      const p = pending.get(m.id);
-      if (p) { clearTimeout(p.timer); pending.delete(m.id); p.resolve(m); }
+    function toast(msg) {
+      const t = $("#toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => t.classList.remove("show"), 2200);
     }
-  };
-  worker.postMessage({ type: "init", url: PYODIDE_BASE + "pyodide.js", indexURL: PYODIDE_BASE });
-}
 
-function runPython(code, stdin) {
-  return new Promise((resolve) => {
-    const id = ++runSeq;
-    const timer = setTimeout(() => {
-      pending.delete(id);
-      worker.terminate();
-      resolve({ out: "", error: `Program běžel déle než ${RUN_TIMEOUT_MS / 1000} s a byl ukončen (nekonečná smyčka?).` });
-      document.querySelectorAll(".btn-run").forEach(b => (b.disabled = true));
-      startWorker();
-    }, RUN_TIMEOUT_MS);
-    pending.set(id, { resolve, timer });
-    worker.postMessage({ type: "run", id, code, stdin });
-  });
-}
+    function save() {
+      try {localStorage.setItem(STORAGE_KEY, JSON.stringify(state));} catch (_) { }
+    }
+    function load() {
+      try {return JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");} catch (_) {return null;}
+    }
+    function clearSaved() {
+      try {localStorage.removeItem(STORAGE_KEY);} catch (_) { }
+    }
 
-/* =================================================================
-   EDITOR
-   ================================================================= */
-function updateGutter(ta, gutter) {
-  const n = ta.value.split("\n").length;
-  let s = "";
-  for (let i = 1; i <= n; i++) s += i + "\n";
-  gutter.textContent = s;
-  gutter.scrollTop = ta.scrollTop;
-}
+    function logViolation(type) {
+      if (!state.student || state.submitted) return;
+      state.violations.push({type, time: new Date().toISOString()});
+      save();
+    }
 
-function setupEditor(ta, gutter, onChange) {
-  const INDENT = "    ";
-  ta.addEventListener("keydown", (e) => {
-    // Tab / Shift+Tab = odsazení
-    if (e.key === "Tab") {
-      e.preventDefault();
-      const { selectionStart: s, selectionEnd: en, value: v } = ta;
-      if (e.shiftKey) {
-        const lineStart = v.lastIndexOf("\n", s - 1) + 1;
-        const m = v.slice(lineStart).match(/^ {1,4}/);
-        if (m) {
-          ta.setRangeText("", lineStart, lineStart + m[0].length, "end");
-          ta.selectionStart = ta.selectionEnd = Math.max(lineStart, s - m[0].length);
+    /* =================================================================
+       PYODIDE WORKER
+       ================================================================= */
+    let worker = null, pyReady = false, runSeq = 0;
+    const pending = new Map();
+
+    function setPyStatus(text, cls) {
+      $("#py-status").textContent = text;
+      $("#py-dot").className = "dot" + (cls ? " " + cls : "");
+    }
+
+    function startWorker() {
+      pyReady = false;
+      setPyStatus("Načítám Python…");
+      const src = $("#worker-src").textContent;
+      const url = URL.createObjectURL(new Blob([src], {type: "text/javascript"}));
+      worker = new Worker(url);
+      worker.onmessage = (e) => {
+        const m = e.data;
+        if (m.type === "ready") {
+          pyReady = true;
+          setPyStatus(`Python ${m.version ? "připraven" : "připraven"}`, "ready");
+          document.querySelectorAll(".btn-run").forEach(b => (b.disabled = false));
+        } else if (m.type === "init-error") {
+          setPyStatus("Python se nepodařilo načíst", "error");
+          toast("Chyba načtení Pythonu – zkontroluj připojení a obnov stránku.");
+        } else if (m.type === "result") {
+          const p = pending.get(m.id);
+          if (p) {clearTimeout(p.timer); pending.delete(m.id); p.resolve(m);}
         }
-      } else {
-        ta.setRangeText(INDENT, s, en, "end");
-      }
-      onChange();
+      };
+      worker.postMessage({type: "init", url: PYODIDE_BASE + "pyodide.js", indexURL: PYODIDE_BASE});
     }
-    // Enter = zachová odsazení, za dvojtečkou přidá další úroveň
-    else if (e.key === "Enter" && !e.ctrlKey && !e.metaKey) {
-      e.preventDefault();
-      const { selectionStart: s, selectionEnd: en, value: v } = ta;
-      const lineStart = v.lastIndexOf("\n", s - 1) + 1;
-      const line = v.slice(lineStart, s);
-      let indent = line.match(/^\s*/)[0];
-      if (/:\s*$/.test(line)) indent += INDENT;
-      ta.setRangeText("\n" + indent, s, en, "end");
-      onChange();
-    }
-  });
-  ta.addEventListener("input", onChange);
-  ta.addEventListener("scroll", () => (gutter.scrollTop = ta.scrollTop));
-  updateGutter(ta, gutter);
-}
 
-/* =================================================================
-   VYKRESLENÍ ÚLOH
-   ================================================================= */
-function renderTasks() {
-  const root = $("#tasks");
-  root.innerHTML = "";
-  TASKS.forEach((t, i) => {
-    const a = state.answers[i];
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
+    function runPython(code, stdin) {
+      return new Promise((resolve) => {
+        const id = ++runSeq;
+        const timer = setTimeout(() => {
+          pending.delete(id);
+          worker.terminate();
+          resolve({out: "", error: `Program běžel déle než ${RUN_TIMEOUT_MS / 1000} s a byl ukončen (nekonečná smyčka?).`});
+          document.querySelectorAll(".btn-run").forEach(b => (b.disabled = true));
+          startWorker();
+        }, RUN_TIMEOUT_MS);
+        pending.set(id, {resolve, timer});
+        worker.postMessage({type: "run", id, code, stdin});
+      });
+    }
+
+    /* =================================================================
+       EDITOR
+       ================================================================= */
+    function updateGutter(ta, gutter) {
+      const n = ta.value.split("\n").length;
+      let s = "";
+      for (let i = 1; i <= n; i++) s += i + "\n";
+      gutter.textContent = s;
+      gutter.scrollTop = ta.scrollTop;
+    }
+
+    function setupEditor(ta, gutter, onChange) {
+      const INDENT = "    ";
+      ta.addEventListener("keydown", (e) => {
+        // Tab / Shift+Tab = odsazení
+        if (e.key === "Tab") {
+          e.preventDefault();
+          const {selectionStart: s, selectionEnd: en, value: v} = ta;
+          if (e.shiftKey) {
+            const lineStart = v.lastIndexOf("\n", s - 1) + 1;
+            const m = v.slice(lineStart).match(/^ {1,4}/);
+            if (m) {
+              ta.setRangeText("", lineStart, lineStart + m[0].length, "end");
+              ta.selectionStart = ta.selectionEnd = Math.max(lineStart, s - m[0].length);
+            }
+          } else {
+            ta.setRangeText(INDENT, s, en, "end");
+          }
+          onChange();
+        }
+        // Enter = zachová odsazení, za dvojtečkou přidá další úroveň
+        else if (e.key === "Enter" && !e.ctrlKey && !e.metaKey) {
+          e.preventDefault();
+          const {selectionStart: s, selectionEnd: en, value: v} = ta;
+          const lineStart = v.lastIndexOf("\n", s - 1) + 1;
+          const line = v.slice(lineStart, s);
+          let indent = line.match(/^\s*/)[0];
+          if (/:\s*$/.test(line)) indent += INDENT;
+          ta.setRangeText("\n" + indent, s, en, "end");
+          onChange();
+        }
+      });
+      ta.addEventListener("input", onChange);
+      ta.addEventListener("scroll", () => (gutter.scrollTop = ta.scrollTop));
+      updateGutter(ta, gutter);
+    }
+
+    /* =================================================================
+       VYKRESLENÍ ÚLOH
+       ================================================================= */
+    function renderTasks() {
+      const root = $("#tasks");
+      root.innerHTML = "";
+      TASKS.forEach((t, i) => {
+        const a = state.answers[i];
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
       <div class="task-head">
         <span class="task-num">Úloha ${i + 1} / ${TASKS.length}</span>
         <span class="task-status ${a.runs ? "ran" : ""}">${a.runs ? "✓ spuštěno" : "nespuštěno"}</span>
@@ -580,312 +863,313 @@ function renderTasks() {
       </div>
       <div class="console"><span class="label">Výstup</span><span class="out"><span class="info">Zatím nic nespuštěno.</span></span></div>
     `;
-    root.appendChild(card);
+        root.appendChild(card);
 
-    const ta = $("textarea.code", card);
-    const gutter = $(".gutter", card);
-    const stdin = $("textarea.stdin", card);
-    const out = $(".out", card);
-    const status = $(".task-status", card);
-    const runBtn = $(".btn-run", card);
-    ta.value = a.code;
-    stdin.value = a.stdin;
-    if (a.output) out.innerHTML = a.output;
+        const ta = $("textarea.code", card);
+        const gutter = $(".gutter", card);
+        const stdin = $("textarea.stdin", card);
+        const out = $(".out", card);
+        const status = $(".task-status", card);
+        const runBtn = $(".btn-run", card);
+        ta.value = a.code;
+        stdin.value = a.stdin;
+        if (a.output) out.innerHTML = a.output;
 
-    setupEditor(ta, gutter, () => { a.code = ta.value; updateGutter(ta, gutter); save(); });
-    stdin.addEventListener("input", () => { a.stdin = stdin.value; save(); });
+        setupEditor(ta, gutter, () => {a.code = ta.value; updateGutter(ta, gutter); save();});
+        stdin.addEventListener("input", () => {a.stdin = stdin.value; save();});
 
-    runBtn.addEventListener("click", async () => {
-      if (!pyReady) return;
-      runBtn.disabled = true;
-      runBtn.textContent = "Běží…";
-      out.innerHTML = `<span class="info">Spouštím…</span>`;
-      const res = await runPython(ta.value, stdin.value);
-      let html = res.out ? esc(res.out) : "";
-      if (res.error) html += (html && !html.endsWith("\n") ? "\n" : "") + `<span class="err">${esc(res.error)}</span>`;
-      if (!html) html = `<span class="info">(Program nic nevypsal.)</span>`;
-      out.innerHTML = html;
-      a.output = html;
-      a.lastResult = (res.out || "") + (res.error ? "\n[CHYBA]\n" + res.error : "");
-      a.runs++;
-      status.textContent = "✓ spuštěno";
-      status.classList.add("ran");
-      runBtn.textContent = "▶ Spustit kód";
-      runBtn.disabled = !pyReady;
-      save();
-    });
+        runBtn.addEventListener("click", async () => {
+          if (!pyReady) return;
+          runBtn.disabled = true;
+          runBtn.textContent = "Běží…";
+          out.innerHTML = `<span class="info">Spouštím…</span>`;
+          const res = await runPython(ta.value, stdin.value);
+          let html = res.out ? esc(res.out) : "";
+          if (res.error) html += (html && !html.endsWith("\n") ? "\n" : "") + `<span class="err">${esc(res.error)}</span>`;
+          if (!html) html = `<span class="info">(Program nic nevypsal.)</span>`;
+          out.innerHTML = html;
+          a.output = html;
+          a.lastResult = (res.out || "") + (res.error ? "\n[CHYBA]\n" + res.error : "");
+          a.runs++;
+          status.textContent = "✓ spuštěno";
+          status.classList.add("ran");
+          runBtn.textContent = "▶ Spustit kód";
+          runBtn.disabled = !pyReady;
+          save();
+        });
 
-    $(".btn-clear", card).addEventListener("click", () => {
-      out.innerHTML = `<span class="info">Výstup vymazán.</span>`;
-      a.output = "";
-      save();
-    });
-  });
-}
-
-/* =================================================================
-   BEZPEČNOSTNÍ OPATŘENÍ
-   ================================================================= */
-function showShield(title, text) {
-  if (!state.student || state.submitted) return;
-  $("#shield-title").textContent = title;
-  $("#shield-text").textContent = text;
-  $("#shield").classList.remove("hidden");
-}
-$("#shield-btn").addEventListener("click", () => $("#shield").classList.add("hidden"));
-
-function testActive() {
-  return state.student && !state.submitted && !$("#screen-test").classList.contains("hidden");
-}
-
-// Kopírování / vložení / vyjmutí / přetažení / pravé tlačítko – blokováno v celém testu
-["copy", "cut", "paste", "drop", "dragstart"].forEach(ev =>
-  document.addEventListener(ev, (e) => {
-    if (!testActive()) return;
-    e.preventDefault();
-    const names = { copy: "Kopírování", cut: "Vyjmutí", paste: "Vkládání", drop: "Přetahování", dragstart: "Přetahování" };
-    toast(`${names[ev]} není v testu povoleno.`);
-    logViolation(ev);
-  }, true)
-);
-document.addEventListener("contextmenu", (e) => {
-  if (!testActive()) return;
-  e.preventDefault();
-  toast("Kontextová nabídka je vypnutá.");
-}, true);
-
-// Klávesové zkratky
-document.addEventListener("keydown", (e) => {
-  if (!testActive()) return;
-  const k = e.key.toLowerCase();
-  const mod = e.ctrlKey || e.metaKey;
-
-  // Tisk, uložení, zdrojový kód, vývojářské nástroje
-  if ((mod && ["p", "s", "u"].includes(k)) ||
-      k === "f12" ||
-      (mod && e.shiftKey && ["i", "j", "c"].includes(k))) {
-    e.preventDefault();
-    toast("Tato zkratka je v testu zakázána.");
-    logViolation("shortcut:" + (mod ? "ctrl+" : "") + (e.shiftKey ? "shift+" : "") + k);
-    return;
-  }
-  // macOS snímky obrazovky Cmd+Shift+3/4/5
-  if (e.metaKey && e.shiftKey && ["3", "4", "5"].includes(e.key)) {
-    e.preventDefault();
-    showShield("Snímek obrazovky není povolen", "Pokus o snímek obrazovky byl zaznamenán.");
-    logViolation("screenshot:mac");
-    return;
-  }
-  // Záložní blokace Ctrl+C / V / X i v případě, že prohlížeč nevyvolá událost
-  if (mod && ["c", "v", "x"].includes(k)) {
-    e.preventDefault();
-    toast("Kopírování a vkládání není povoleno.");
-    logViolation("shortcut:ctrl+" + k);
-  }
-}, true);
-
-// PrintScreen – prohlížeč jej hlásí až při uvolnění klávesy
-document.addEventListener("keyup", (e) => {
-  if (!testActive()) return;
-  if (e.key === "PrintScreen" || e.code === "PrintScreen") {
-    try { navigator.clipboard && navigator.clipboard.writeText(""); } catch (_) {}
-    showShield("Snímek obrazovky není povolen", "Pokus o snímek obrazovky byl zaznamenán.");
-    logViolation("screenshot:printscreen");
-  }
-}, true);
-
-// Opuštění okna (přepnutí karty, Alt+Tab, Win+Shift+S, nástroj na výstřižky…)
-window.addEventListener("blur", () => {
-  if (!testActive()) return;
-  showShield("Test je skrytý", "Opustil(a) jsi okno testu. Událost byla zaznamenána.");
-  logViolation("blur");
-});
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden && testActive()) logViolation("tab-hidden");
-});
-window.addEventListener("beforeprint", () => logViolation("print"));
-
-// Varování při zavírání stránky během testu
-window.addEventListener("beforeunload", (e) => {
-  if (testActive()) { e.preventDefault(); e.returnValue = ""; }
-});
-
-/* =================================================================
-   SPUŠTĚNÍ TESTU
-   ================================================================= */
-let timerInt = null;
-function startTimer() {
-  clearInterval(timerInt);
-  const tick = () => {
-    const s = Math.floor((Date.now() - new Date(state.startedAt).getTime()) / 1000);
-    const mm = String(Math.floor(s / 60)).padStart(2, "0");
-    const ss = String(s % 60).padStart(2, "0");
-    $("#timer").textContent = `${mm}:${ss}`;
-  };
-  tick();
-  timerInt = setInterval(tick, 1000);
-}
-
-function enterTest() {
-  $("#screen-start").classList.add("hidden");
-  $("#screen-test").classList.remove("hidden");
-  const st = state.student;
-  $("#student-label").textContent = `${st.jmeno} ${st.prijmeni} · ${st.trida}`;
-  renderTasks();
-  startTimer();
-  if (!worker) startWorker();
-  window.scrollTo(0, 0);
-}
-
-$("#start-form").addEventListener("submit", (e) => {
-  e.preventDefault();
-  const jmeno = $("#jmeno").value.trim();
-  const prijmeni = $("#prijmeni").value.trim();
-  const trida = $("#trida").value.trim();
-  if (!jmeno || !prijmeni || !trida) {
-    $("#form-error").textContent = "Vyplň prosím jméno, příjmení i třídu.";
-    return;
-  }
-  state.student = { jmeno, prijmeni, trida };
-  state.startedAt = new Date().toISOString();
-  save();
-  enterTest();
-});
-
-// Obnovení rozpracovaného testu po náhodném obnovení stránky
-(function restore() {
-  const saved = load();
-  if (saved && saved.student && !saved.submitted && Array.isArray(saved.answers) && saved.answers.length === TASKS.length) {
-    Object.assign(state, saved);
-    state.violations.push({ type: "page-reload", time: new Date().toISOString() });
-    enterTest();
-    toast("Rozpracovaný test byl obnoven.");
-  }
-})();
-
-/* =================================================================
-   ODESLÁNÍ
-   ================================================================= */
-function buildPayload() {
-  const odeslano = new Date();
-  return {
-    jmeno: state.student.jmeno,
-    prijmeni: state.student.prijmeni,
-    trida: state.student.trida,
-    zahajeno: state.startedAt,
-    odeslano: odeslano.toISOString(),
-    odeslano_mistni: odeslano.toLocaleString("cs-CZ", { timeZone: "Europe/Prague" }),
-    doba_minut: Math.round((odeslano - new Date(state.startedAt)) / 60000),
-    odpovedi: TASKS.map((t, i) => ({
-      uloha: i + 1,
-      nazev: t.title,
-      kod: state.answers[i].code,
-      vstup: state.answers[i].stdin,
-      posledni_vystup: state.answers[i].lastResult || "",
-      pocet_spusteni: state.answers[i].runs,
-    })),
-    poruseni: state.violations,
-  };
-}
-
-function payloadToText(p) {
-  const L = [];
-  L.push("TEST: ZÁKLADY PYTHONU", "=".repeat(60));
-  L.push(`Student:   ${p.jmeno} ${p.prijmeni}`);
-  L.push(`Třída:     ${p.trida}`);
-  L.push(`Odesláno:  ${p.odeslano_mistni}`);
-  L.push(`Doba:      ${p.doba_minut} min`);
-  L.push(`Porušení:  ${p.poruseni.length}`);
-  p.odpovedi.forEach(o => {
-    L.push("", "=".repeat(60), `ÚLOHA ${o.uloha}: ${o.nazev}  (spuštěno ${o.pocet_spusteni}×)`, "-".repeat(60));
-    L.push(o.kod || "(prázdné)");
-    if (o.vstup) L.push("-".repeat(60), "Vstup:", o.vstup);
-    L.push("-".repeat(60), "Poslední výstup:", o.posledni_vystup || "(nespuštěno)");
-  });
-  if (p.poruseni.length) {
-    L.push("", "=".repeat(60), "ZÁZNAM UDÁLOSTÍ");
-    p.poruseni.forEach(v => L.push(`${new Date(v.time).toLocaleTimeString("cs-CZ")}  ${v.type}`));
-  }
-  return L.join("\n");
-}
-
-let lastPayload = null;
-
-function downloadBackup() {
-  if (!lastPayload) lastPayload = buildPayload();
-  const blob = new Blob([payloadToText(lastPayload)], { type: "text/plain;charset=utf-8" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `${lastPayload.trida}_${lastPayload.prijmeni}_${lastPayload.jmeno}.txt`.replace(/\s+/g, "_");
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-}
-$("#btn-backup").addEventListener("click", downloadBackup);
-
-$("#btn-submit").addEventListener("click", () => {
-  const empty = state.answers
-    .map((a, i) => ({ i, empty: a.code.trim() === TASKS[i].starter.trim() || !a.code.trim() }))
-    .filter(x => x.empty).map(x => x.i + 1);
-  const notRun = state.answers.map((a, i) => (a.runs ? null : i + 1)).filter(Boolean);
-  let txt = "Po odeslání už nebude možné odpovědi upravit.";
-  if (empty.length) txt += ` Nevyřešené úlohy: ${empty.join(", ")}.`;
-  else if (notRun.length) txt += ` Nespuštěné úlohy: ${notRun.join(", ")}.`;
-  $("#confirm-text").textContent = txt;
-  $("#confirm").classList.remove("hidden");
-});
-$("#confirm-no").addEventListener("click", () => $("#confirm").classList.add("hidden"));
-
-$("#confirm-yes").addEventListener("click", async () => {
-  $("#confirm").classList.add("hidden");
-  const btn = $("#btn-submit");
-  const msg = $("#submit-msg");
-  btn.disabled = true;
-  btn.textContent = "Odesílám…";
-  msg.className = "submit-msg";
-  msg.textContent = "";
-
-  lastPayload = buildPayload();
-  lastPayload.text = payloadToText(lastPayload);
-  const body = JSON.stringify(lastPayload);
-
-  let ok = false, note = "";
-  try {
-    if (APPS_SCRIPT_URL.startsWith("VLOZ")) throw new Error("Není nastaven APPS_SCRIPT_URL.");
-    // text/plain = „jednoduchý“ požadavek bez CORS preflightu, který Apps Script nepodporuje
-    const res = await fetch(APPS_SCRIPT_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body });
-    const data = await res.json().catch(() => ({}));
-    if (data.status === "ok") ok = true;
-    else throw new Error(data.message || "Server odpověděl neočekávaně.");
-  } catch (err) {
-    // Záložní pokus bez čtení odpovědi (např. při omezení CORS)
-    if (!APPS_SCRIPT_URL.startsWith("VLOZ") && err instanceof TypeError) {
-      try {
-        await fetch(APPS_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body });
-        ok = true;
-        note = " (potvrzení ze serveru nebylo možné ověřit)";
-      } catch (_) {}
+        $(".btn-clear", card).addEventListener("click", () => {
+          out.innerHTML = `<span class="info">Výstup vymazán.</span>`;
+          a.output = "";
+          save();
+        });
+      });
     }
-    if (!ok) note = err.message;
-  }
 
-  if (ok) {
-    state.submitted = true;
-    clearSaved();
-    clearInterval(timerInt);
-    if (worker) worker.terminate();
-    $("#screen-test").classList.add("hidden");
-    $("#screen-done").classList.remove("hidden");
-    $("#done-text").textContent = "Tvé odpovědi byly uloženy učiteli" + note + ". Můžeš zavřít okno.";
-    window.scrollTo(0, 0);
-  } else {
-    btn.disabled = false;
-    btn.textContent = "Odeslat test znovu";
-    msg.className = "submit-msg err";
-    msg.innerHTML = `Odeslání se nezdařilo: ${esc(note)}<br>Zkus to znovu, nebo si stáhni kopii a předej ji učiteli. <button class="btn secondary" id="btn-backup2" style="margin-top:10px">Stáhnout kopii</button>`;
-    $("#btn-backup2").addEventListener("click", downloadBackup);
-  }
-});
-</script>
+    /* =================================================================
+       BEZPEČNOSTNÍ OPATŘENÍ
+       ================================================================= */
+    function showShield(title, text) {
+      if (!state.student || state.submitted) return;
+      $("#shield-title").textContent = title;
+      $("#shield-text").textContent = text;
+      $("#shield").classList.remove("hidden");
+    }
+    $("#shield-btn").addEventListener("click", () => $("#shield").classList.add("hidden"));
+
+    function testActive() {
+      return state.student && !state.submitted && !$("#screen-test").classList.contains("hidden");
+    }
+
+    // Kopírování / vložení / vyjmutí / přetažení / pravé tlačítko – blokováno v celém testu
+    ["copy", "cut", "paste", "drop", "dragstart"].forEach(ev =>
+      document.addEventListener(ev, (e) => {
+        if (!testActive()) return;
+        e.preventDefault();
+        const names = {copy: "Kopírování", cut: "Vyjmutí", paste: "Vkládání", drop: "Přetahování", dragstart: "Přetahování"};
+        toast(`${names[ev]} není v testu povoleno.`);
+        logViolation(ev);
+      }, true)
+    );
+    document.addEventListener("contextmenu", (e) => {
+      if (!testActive()) return;
+      e.preventDefault();
+      toast("Kontextová nabídka je vypnutá.");
+    }, true);
+
+    // Klávesové zkratky
+    document.addEventListener("keydown", (e) => {
+      if (!testActive()) return;
+      const k = e.key.toLowerCase();
+      const mod = e.ctrlKey || e.metaKey;
+
+      // Tisk, uložení, zdrojový kód, vývojářské nástroje
+      if ((mod && ["p", "s", "u"].includes(k)) ||
+        k === "f12" ||
+        (mod && e.shiftKey && ["i", "j", "c"].includes(k))) {
+        e.preventDefault();
+        toast("Tato zkratka je v testu zakázána.");
+        logViolation("shortcut:" + (mod ? "ctrl+" : "") + (e.shiftKey ? "shift+" : "") + k);
+        return;
+      }
+      // macOS snímky obrazovky Cmd+Shift+3/4/5
+      if (e.metaKey && e.shiftKey && ["3", "4", "5"].includes(e.key)) {
+        e.preventDefault();
+        showShield("Snímek obrazovky není povolen", "Pokus o snímek obrazovky byl zaznamenán.");
+        logViolation("screenshot:mac");
+        return;
+      }
+      // Záložní blokace Ctrl+C / V / X i v případě, že prohlížeč nevyvolá událost
+      if (mod && ["c", "v", "x"].includes(k)) {
+        e.preventDefault();
+        toast("Kopírování a vkládání není povoleno.");
+        logViolation("shortcut:ctrl+" + k);
+      }
+    }, true);
+
+    // PrintScreen – prohlížeč jej hlásí až při uvolnění klávesy
+    document.addEventListener("keyup", (e) => {
+      if (!testActive()) return;
+      if (e.key === "PrintScreen" || e.code === "PrintScreen") {
+        try {navigator.clipboard && navigator.clipboard.writeText("");} catch (_) { }
+        showShield("Snímek obrazovky není povolen", "Pokus o snímek obrazovky byl zaznamenán.");
+        logViolation("screenshot:printscreen");
+      }
+    }, true);
+
+    // Opuštění okna (přepnutí karty, Alt+Tab, Win+Shift+S, nástroj na výstřižky…)
+    window.addEventListener("blur", () => {
+      if (!testActive()) return;
+      showShield("Test je skrytý", "Opustil(a) jsi okno testu. Událost byla zaznamenána.");
+      logViolation("blur");
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden && testActive()) logViolation("tab-hidden");
+    });
+    window.addEventListener("beforeprint", () => logViolation("print"));
+
+    // Varování při zavírání stránky během testu
+    window.addEventListener("beforeunload", (e) => {
+      if (testActive()) {e.preventDefault(); e.returnValue = "";}
+    });
+
+    /* =================================================================
+       SPUŠTĚNÍ TESTU
+       ================================================================= */
+    let timerInt = null;
+    function startTimer() {
+      clearInterval(timerInt);
+      const tick = () => {
+        const s = Math.floor((Date.now() - new Date(state.startedAt).getTime()) / 1000);
+        const mm = String(Math.floor(s / 60)).padStart(2, "0");
+        const ss = String(s % 60).padStart(2, "0");
+        $("#timer").textContent = `${mm}:${ss}`;
+      };
+      tick();
+      timerInt = setInterval(tick, 1000);
+    }
+
+    function enterTest() {
+      $("#screen-start").classList.add("hidden");
+      $("#screen-test").classList.remove("hidden");
+      const st = state.student;
+      $("#student-label").textContent = `${st.jmeno} ${st.prijmeni} · ${st.trida}`;
+      renderTasks();
+      startTimer();
+      if (!worker) startWorker();
+      window.scrollTo(0, 0);
+    }
+
+    $("#start-form").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const jmeno = $("#jmeno").value.trim();
+      const prijmeni = $("#prijmeni").value.trim();
+      const trida = $("#trida").value.trim();
+      if (!jmeno || !prijmeni || !trida) {
+        $("#form-error").textContent = "Vyplň prosím jméno, příjmení i třídu.";
+        return;
+      }
+      state.student = {jmeno, prijmeni, trida};
+      state.startedAt = new Date().toISOString();
+      save();
+      enterTest();
+    });
+
+    // Obnovení rozpracovaného testu po náhodném obnovení stránky
+    (function restore() {
+      const saved = load();
+      if (saved && saved.student && !saved.submitted && Array.isArray(saved.answers) && saved.answers.length === TASKS.length) {
+        Object.assign(state, saved);
+        state.violations.push({type: "page-reload", time: new Date().toISOString()});
+        enterTest();
+        toast("Rozpracovaný test byl obnoven.");
+      }
+    })();
+
+    /* =================================================================
+       ODESLÁNÍ
+       ================================================================= */
+    function buildPayload() {
+      const odeslano = new Date();
+      return {
+        jmeno: state.student.jmeno,
+        prijmeni: state.student.prijmeni,
+        trida: state.student.trida,
+        zahajeno: state.startedAt,
+        odeslano: odeslano.toISOString(),
+        odeslano_mistni: odeslano.toLocaleString("cs-CZ", {timeZone: "Europe/Prague"}),
+        doba_minut: Math.round((odeslano - new Date(state.startedAt)) / 60000),
+        odpovedi: TASKS.map((t, i) => ({
+          uloha: i + 1,
+          nazev: t.title,
+          kod: state.answers[i].code,
+          vstup: state.answers[i].stdin,
+          posledni_vystup: state.answers[i].lastResult || "",
+          pocet_spusteni: state.answers[i].runs,
+        })),
+        poruseni: state.violations,
+      };
+    }
+
+    function payloadToText(p) {
+      const L = [];
+      L.push("TEST: ZÁKLADY PYTHONU", "=".repeat(60));
+      L.push(`Student:   ${p.jmeno} ${p.prijmeni}`);
+      L.push(`Třída:     ${p.trida}`);
+      L.push(`Odesláno:  ${p.odeslano_mistni}`);
+      L.push(`Doba:      ${p.doba_minut} min`);
+      L.push(`Porušení:  ${p.poruseni.length}`);
+      p.odpovedi.forEach(o => {
+        L.push("", "=".repeat(60), `ÚLOHA ${o.uloha}: ${o.nazev}  (spuštěno ${o.pocet_spusteni}×)`, "-".repeat(60));
+        L.push(o.kod || "(prázdné)");
+        if (o.vstup) L.push("-".repeat(60), "Vstup:", o.vstup);
+        L.push("-".repeat(60), "Poslední výstup:", o.posledni_vystup || "(nespuštěno)");
+      });
+      if (p.poruseni.length) {
+        L.push("", "=".repeat(60), "ZÁZNAM UDÁLOSTÍ");
+        p.poruseni.forEach(v => L.push(`${new Date(v.time).toLocaleTimeString("cs-CZ")}  ${v.type}`));
+      }
+      return L.join("\n");
+    }
+
+    let lastPayload = null;
+
+    function downloadBackup() {
+      if (!lastPayload) lastPayload = buildPayload();
+      const blob = new Blob([payloadToText(lastPayload)], {type: "text/plain;charset=utf-8"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `${lastPayload.trida}_${lastPayload.prijmeni}_${lastPayload.jmeno}.txt`.replace(/\s+/g, "_");
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+    $("#btn-backup").addEventListener("click", downloadBackup);
+
+    $("#btn-submit").addEventListener("click", () => {
+      const empty = state.answers
+        .map((a, i) => ({i, empty: a.code.trim() === TASKS[i].starter.trim() || !a.code.trim()}))
+        .filter(x => x.empty).map(x => x.i + 1);
+      const notRun = state.answers.map((a, i) => (a.runs ? null : i + 1)).filter(Boolean);
+      let txt = "Po odeslání už nebude možné odpovědi upravit.";
+      if (empty.length) txt += ` Nevyřešené úlohy: ${empty.join(", ")}.`;
+      else if (notRun.length) txt += ` Nespuštěné úlohy: ${notRun.join(", ")}.`;
+      $("#confirm-text").textContent = txt;
+      $("#confirm").classList.remove("hidden");
+    });
+    $("#confirm-no").addEventListener("click", () => $("#confirm").classList.add("hidden"));
+
+    $("#confirm-yes").addEventListener("click", async () => {
+      $("#confirm").classList.add("hidden");
+      const btn = $("#btn-submit");
+      const msg = $("#submit-msg");
+      btn.disabled = true;
+      btn.textContent = "Odesílám…";
+      msg.className = "submit-msg";
+      msg.textContent = "";
+
+      lastPayload = buildPayload();
+      lastPayload.text = payloadToText(lastPayload);
+      const body = JSON.stringify(lastPayload);
+
+      let ok = false, note = "";
+      try {
+        if (APPS_SCRIPT_URL.startsWith("https://script.google.com/macros/s/AKfycbwfhFrRhVxRvxiKOtAWxBSLmJZu9Islj-Oo-EzGihow3Mk32kU2EJOKGZ9Id2MnN64V/exec")) throw new Error("Není nastaven APPS_SCRIPT_URL.");
+        // text/plain = „jednoduchý“ požadavek bez CORS preflightu, který Apps Script nepodporuje
+        const res = await fetch(APPS_SCRIPT_URL, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body});
+        const data = await res.json().catch(() => ({}));
+        if (data.status === "ok") ok = true;
+        else throw new Error(data.message || "Server odpověděl neočekávaně.");
+      } catch (err) {
+        // Záložní pokus bez čtení odpovědi (např. při omezení CORS)
+        if (!APPS_SCRIPT_URL.startsWith("https://script.google.com/macros/s/AKfycbwfhFrRhVxRvxiKOtAWxBSLmJZu9Islj-Oo-EzGihow3Mk32kU2EJOKGZ9Id2MnN64V/exec") && err instanceof TypeError) {
+          try {
+            await fetch(APPS_SCRIPT_URL, {method: "POST", mode: "no-cors", headers: {"Content-Type": "text/plain;charset=utf-8"}, body});
+            ok = true;
+            note = " (potvrzení ze serveru nebylo možné ověřit)";
+          } catch (_) { }
+        }
+        if (!ok) note = err.message;
+      }
+
+      if (ok) {
+        state.submitted = true;
+        clearSaved();
+        clearInterval(timerInt);
+        if (worker) worker.terminate();
+        $("#screen-test").classList.add("hidden");
+        $("#screen-done").classList.remove("hidden");
+        $("#done-text").textContent = "Tvé odpovědi byly uloženy učiteli" + note + ". Můžeš zavřít okno.";
+        window.scrollTo(0, 0);
+      } else {
+        btn.disabled = false;
+        btn.textContent = "Odeslat test znovu";
+        msg.className = "submit-msg err";
+        msg.innerHTML = `Odeslání se nezdařilo: ${esc(note)}<br>Zkus to znovu, nebo si stáhni kopii a předej ji učiteli. <button class="btn secondary" id="btn-backup2" style="margin-top:10px">Stáhnout kopii</button>`;
+        $("#btn-backup2").addEventListener("click", downloadBackup);
+      }
+    });
+  </script>
 </body>
+
 </html>
