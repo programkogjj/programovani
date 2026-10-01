@@ -650,7 +650,7 @@
        KONFIGURACE
        ================================================================= */
     // Sem vlož URL nasazeného Google Apps Script Web App (končí na /exec)
-    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwfhFrRhVxRvxiKOtAWxBSLmJZu9Islj-Oo-EzGihow3Mk32kU2EJOKGZ9Id2MnN64V/exec";
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyAPcOpXSFKQzZn5taiehZ9-K0-Ln2eG5DsuTAdjb2r47GVdX3qb2OKeiRs4eR4ZNaUvw/exec";
 
     // Novější Pyodide než 0.23.4 – rychlejší start, Python 3.12
     const PYODIDE_VERSION = "0.26.4";
@@ -1141,15 +1141,11 @@
         if (data.status === "ok") ok = true;
         else throw new Error(data.message || "Server odpověděl neočekávaně.");
       } catch (err) {
-        // Záložní pokus bez čtení odpovědi (např. při omezení CORS)
-        if (!APPS_SCRIPT_URL.startsWith("VLOZ") && err instanceof TypeError) {
-          try {
-            await fetch(APPS_SCRIPT_URL, {method: "POST", mode: "no-cors", headers: {"Content-Type": "text/plain;charset=utf-8"}, body});
-            ok = true;
-            note = " (potvrzení ze serveru nebylo možné ověřit)";
-          } catch (_) { }
-        }
-        if (!ok) note = err.message;
+        // Úspěch hlásíme jen při potvrzení {status:"ok"} ze serveru.
+        // TypeError = server nedostupný nebo vyžaduje přihlášení (nasazení není „Kdokoli“).
+        note = err instanceof TypeError
+          ? "server nepotvrdil uložení (zkontrolujte připojení nebo nasazení skriptu)."
+          : err.message;
       }
 
       if (ok) {
