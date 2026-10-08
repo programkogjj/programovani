@@ -331,12 +331,41 @@
     setMod($("#shield"), "shield", "hidden", false);
   }
 
+  /* Vodoznak: jméno + třída + začátek ID relace, opakovaně přes celou stránku */
+  function renderWatermark() {
+    const st = state.student;
+    const label = esc(`${st.jmeno} ${st.prijmeni} · ${st.trida} · ${String(state.sessionId).slice(0, 8)}`);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="420" height="220">` +
+      `<text x="20" y="130" transform="rotate(-20 210 110)" font-family="sans-serif" font-size="18" fill="#000">${label}</text></svg>`;
+    $("#watermark").style.backgroundImage = `url("data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}")`;
+  }
+
+  /* Zakrytí obrazovky při klávese Windows (Win+Shift+S, Win+PrtScn, herní panel…).
+     Prohlížeč klávesu S v kombinaci nedostane – systém ji zachytí dřív. Dostane ale
+     samotnou klávesu Windows, takže obsah zakryjeme dřív, než student zmáčkne S.
+     Na Macu se Cmd používá běžně (Cmd+Z), proto se zakrývá až při Cmd+Shift. */
+  const IS_WINDOWS = /Win/i.test(navigator.userAgent);
+  let coverTimer = null;
+
+  function setCover(on) {
+    clearTimeout(coverTimer);
+    setMod($("#cover"), "cover", "hidden", !on);
+  }
+
+  function isScreenshotPrefix(e) {
+    const meta = e.metaKey || e.key === "Meta" || e.key === "OS";
+    return IS_WINDOWS ? meta : meta && (e.shiftKey || e.key === "Shift");
+  }
+
   function testActive() {
     return Boolean(state.student) && !state.submitted && !hasMod($("#screen-test"), "screen", "hidden");
   }
 
   function bindSecurity() {
-    $("#shield-btn").addEventListener("click", () => setMod($("#shield"), "shield", "hidden", true));
+    $("#shield-btn").addEventListener("click", () => {
+      setMod($("#shield"), "shield", "hidden", true);
+      setCover(false);
+    });
 
     // Kopírování / vložení / vyjmutí / přetažení – blokováno v celém testu
     const names = { copy: "Kopírování", cut: "Vyjmutí", paste: "Vkládání", drop: "Přetahování", dragstart: "Přetahování" };
@@ -354,6 +383,24 @@
       e.preventDefault();
       toast("Kontextová nabídka je vypnutá.");
     }, true);
+
+    // Klávesa Windows / Cmd+Shift → okamžité zakrytí
+    document.addEventListener("keydown", (e) => {
+      if (!testActive() || !isScreenshotPrefix(e)) return;
+      if (hasMod($("#cover"), "cover", "hidden")) logViolation("meta-key");
+      setCover(true);
+    }, true);
+    document.addEventListener("keyup", (e) => {
+      if (!testActive()) return;
+      if (e.key === "Meta" || e.key === "OS" || !e.metaKey) {
+        clearTimeout(coverTimer);
+        coverTimer = setTimeout(() => { if (document.hasFocus()) setCover(false); }, 600);
+      }
+    }, true);
+    window.addEventListener("focus", () => {
+      clearTimeout(coverTimer);
+      coverTimer = setTimeout(() => setCover(false), 600);
+    });
 
     // Klávesové zkratky
     document.addEventListener("keydown", (e) => {
@@ -397,6 +444,7 @@
     // Opuštění okna (přepnutí karty, Alt+Tab, Win+Shift+S, nástroj na výstřižky…)
     window.addEventListener("blur", () => {
       if (!testActive()) return;
+      setCover(true);
       showShield("Test je skrytý", "Opustil(a) jsi okno testu. Událost byla zaznamenána.");
       logViolation("blur");
     });
@@ -474,6 +522,7 @@
     const st = state.student;
     $("#student-label").textContent = `${st.jmeno} ${st.prijmeni} · ${st.trida}`;
     renderTasks();
+    renderWatermark();
     startTimer();
     if (!worker) startWorker();
   }

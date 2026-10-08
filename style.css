@@ -471,6 +471,41 @@ html {
 }
 
 /* =====================================================================
+   BLOCK: watermark  (opakovaný text se jménem přes celou stránku)
+   ===================================================================== */
+.watermark {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+  opacity: .09;
+  background-repeat: repeat;
+}
+
+/* =====================================================================
+   BLOCK: cover  (okamžité zakrytí při klávese Windows/Cmd)
+   ===================================================================== */
+.cover {
+  position: fixed;
+  inset: 0;
+  z-index: 95;                  /* pod .shield (100), aby šlo kliknout na „Pokračovat“ */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-code-bg);
+  color: #fff;
+}
+
+.cover--hidden {
+  display: none;
+}
+
+.cover__text {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+/* =====================================================================
    BLOCK: modal  (potvrzení odeslání)
    ===================================================================== */
 .modal {
