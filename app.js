@@ -500,6 +500,9 @@
       try {
         // Zahájení se eviduje na serveru; zadání přijde až teď
         const data = await callServer({ action: "start", jmeno, prijmeni, trida, kod, zarizeni: deviceId() });
+        if (!Array.isArray(data.tasks) || !data.sessionId) {
+          throw new Error("Server běží ve staré verzi skriptu – učitel musí v Apps Scriptu vytvořit novou verzi implementace.");
+        }
         state.tasks = data.tasks;
         state.answers = data.tasks.map((t) => ({ code: t.starter, stdin: t.stdin || "", output: "", runs: 0 }));
         state.sessionId = data.sessionId;
